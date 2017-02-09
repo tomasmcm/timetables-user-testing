@@ -88,6 +88,10 @@ body {
 }
 .o-header__title {
   font-size: 1.2em;
+  text-align: right;
+}
+.o-header__title small{
+  font-size: 0.8em;
 }
 
 .o-main {
@@ -108,6 +112,7 @@ body {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
+  text-align: center;
 }
 
 .c-card__question {
@@ -148,6 +153,7 @@ body {
   align-items: center;
   justify-content: space-around;
   height: 100%;
+  position: relative;
 }
 
 .c-results__values-container {
@@ -186,6 +192,7 @@ body {
   left: 50%;
   bottom: 5%;
   transform: translate(-50%, 0);
+  text-align: center;
 }
 
 .c-results__reset__js {
@@ -193,4 +200,10 @@ body {
   padding: 0.8em 1.2em;
   border-radius: 10px;
   color: white;
+}
+
+.c-results__total {
+  position: absolute;
+  left: 5em;
+  top: 0em;
 }

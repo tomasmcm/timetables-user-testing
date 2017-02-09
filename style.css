@@ -90,7 +90,7 @@ body {
   font-size: 1.2em;
   text-align: right;
 }
-.o-header__title small{
+small{
   font-size: 0.8em;
 }
 
@@ -126,8 +126,8 @@ body {
 }
 
 .c-card__answer {
-  width: 22vw;
-  padding-top: 22vw;
+  width: 23vw;
+  padding-top: 23vw;
   background: #03A9F4;
   color: white;
   font-size: 2em;

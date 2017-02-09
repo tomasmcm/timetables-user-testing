@@ -1,0 +1,7 @@
+{
+  "name": "Website",
+  "description": "IDM14-User-Poll",
+  "scripts": {
+    "start": "budo --live --verbose --port 3000 --open"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "timetables-testing-app",
+  "productName": "Timetables Testing App",
+  "description": "App to test Timetables Website",
+  "version": "0.0.0",
+  "author": "tomasmcm <tmm20@uni.brighton.ac.uk>",
+  "copyright": "© 2017, tomasmcm",
+  "license": "MIT",
+  "main": "app/background.js",
+  "scripts": {
+    "build": "gulp build",
+    "prerelease": "gulp build --env=production",
+    "start": "gulp start"
+  },
+  "dependencies": {
+    "fs-jetpack": "^0.10.2"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "electron": "^1.4.7",
+    "electron-builder": "^8.6.0",
+    "electron-mocha": "^3.0.0",
+    "gulp": "^3.9.0",
+    "gulp-batch": "^1.0.5",
+    "gulp-less": "^3.0.3",
+    "gulp-plumber": "^1.1.0",
+    "gulp-util": "^3.0.6",
+    "gulp-watch": "^4.3.5",
+    "istanbul": "^0.4.3",
+    "minimist": "^1.2.0",
+    "mocha": "^3.0.2",
+    "rollup": "^0.36.3",
+    "rollup-plugin-istanbul": "^1.1.0",
+    "source-map-support": "^0.4.2",
+    "spectron": "^3.3.0"
+  }
+}

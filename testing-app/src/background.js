@@ -75,7 +75,7 @@ app.on('ready', function () {
   });
   mainWindow.maximize();
 
-  mainWindow.loadURL("http://timetable.brighton.ac.uk/timetabling/homePage.do");
+  mainWindow.loadURL(env.url);
 
   // if (env.name === 'development') {
   //   mainWindow.openDevTools();

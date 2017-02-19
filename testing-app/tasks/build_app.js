@@ -19,6 +19,11 @@ gulp.task('bundle', function () {
     ]);
 });
 
+gulp.task('environment', function () {
+    var configFile = 'config/env_' + utils.getEnvName() + '.json';
+    projectDir.copy(configFile, destDir.path('env.json'), { overwrite: true });
+});
+
 gulp.task('watch', function () {
     var beepOnError = function (done) {
         return function (err) {
@@ -34,4 +39,4 @@ gulp.task('watch', function () {
     }));
 });
 
-gulp.task('build', ['bundle']);
+gulp.task('build', ['bundle', 'environment']);

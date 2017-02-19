@@ -11,4 +11,4 @@ npm start
 
 ### Customise
 
-To test a different website open `/src/config/env_development.json` and change the value of `url`.
+To test a different website open `/config/env_development.json` and change the value of `url`.

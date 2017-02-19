@@ -197,7 +197,7 @@ electron.app.on('ready', function () {
   });
   mainWindow.maximize();
 
-  mainWindow.loadURL("http://timetable.brighton.ac.uk/timetabling/homePage.do");
+  mainWindow.loadURL(env.url);
 
   // if (env.name === 'development') {
   //   mainWindow.openDevTools();
@@ -220,7 +220,7 @@ electron.app.on('ready', function () {
   });
   electron.ipcMain.on('stopTaskEvent', () => {
     global.taskEnd = new Date().getTime();
-    console.log(`=====> TASK ${global.currentTask} ENDED. <=====`);
+    console.log(`=====> TASK ${global.currentTask} ENDED.   <=====`);
     global.tasks.push({"task": global.currentTask,
                       "clicks": global.taskClicks,
                       "enters": global.taskEnters,

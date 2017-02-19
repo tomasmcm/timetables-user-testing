@@ -16,6 +16,10 @@ window.onkeydown = function (e) {
     ipcRenderer.send('startTaskEvent');
   } else if (code === 113) { // F2 key
     ipcRenderer.send('stopTaskEvent');
+  } else if (code === 114) { // F3 key
+    ipcRenderer.send('startRecordingEvent');
+  } else if (code === 115) { // F4 key
+    ipcRenderer.send('stopRecordingEvent');
   }
 };
 

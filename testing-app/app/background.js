@@ -4,6 +4,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var path = require('path');
 var url = require('url');
+var fs = _interopDefault(require('fs'));
 var electron = require('electron');
 var jetpack = _interopDefault(require('fs-jetpack'));
 
@@ -134,8 +135,26 @@ var env = jetpack.cwd(__dirname).read('env.json', 'json');
 // It doesn't have any windows which you can see on screen, but we can open
 // window from here.
 
+const electron$1 = require('electron');
+const os = require('os');
+
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
+const aperture = require('aperture')();
+var options = {
+  fps: 30,
+  cropArea: {
+    x: 0,
+    y: 0,
+    width: 500,
+    height: 500
+  },
+  showCursor: true,
+  highlightClicks: true,
+  audioSourceId: 'AppleHDAEngineInput:1B,0,1,0:1'
+};
+
+var recordedPath;
 global.taskClicks = 0;
 global.taskEnters = 0;
 global.currentTask = 1;
@@ -161,6 +180,9 @@ if (env.name !== 'production') {
 
 electron.app.on('ready', function () {
   setApplicationMenu();
+
+  var mainScreen = electron$1.screen.getPrimaryDisplay().size;
+  options.cropArea.width = mainScreen.width, options.cropArea.height = mainScreen.height;
 
   var mainWindow = createWindow('main', {
     width: 800,
@@ -191,20 +213,38 @@ electron.app.on('ready', function () {
   });
 
   electron.ipcMain.on('startTaskEvent', () => {
-    console.log(`Task ${global.currentTask} started.`);
+    console.log(`=====> TASK ${global.currentTask} STARTED. <=====`);
     global.taskStart = new Date().getTime();
     global.taskClicks = 0;
     global.taskEnters = 0;
   });
   electron.ipcMain.on('stopTaskEvent', () => {
     global.taskEnd = new Date().getTime();
-    console.log(`Task ${global.currentTask} ended.`);
+    console.log(`=====> TASK ${global.currentTask} ENDED. <=====`);
     global.tasks.push({"task": global.currentTask,
-                       "clicks": global.taskClicks,
-                       "enters": global.taskEnters,
-                       "time": (global.taskEnd - global.taskStart)/1000 });
+                      "clicks": global.taskClicks,
+                      "enters": global.taskEnters,
+                      "time": (global.taskEnd - global.taskStart)/1000 });
     global.currentTask++;
   });
+
+
+  electron.ipcMain.on('startRecordingEvent', () => {
+    console.log('##### RECORDING STARTED. #####');
+    aperture.startRecording(options).then(filePath => {
+      console.log(filePath);
+      recordedPath = filePath;
+    });
+  });
+  electron.ipcMain.on('stopRecordingEvent', () => {
+    aperture.stopRecording();
+    if ( typeof recordedPath !== 'undefined' && recordedPath ) {
+      var dir = os.homedir() + '/Desktop/Recording-'+Math.random().toString(36).substr(2, 5)+'.mp4';
+      move(recordedPath.toString(), dir, function(e){console.log(e);});
+    }
+    console.log('##### RECORDING STOPPED. #####');
+  });
+
 
 });
 
@@ -215,6 +255,36 @@ electron.app.on('window-all-closed', function () {
 electron.app.on('before-quit', function () {
   console.log(global.tasks);
 });
+
+
+function move(oldPath, newPath, callback) {
+
+  fs.rename(oldPath, newPath, function (err) {
+    if (err) {
+      if (err.code === 'EXDEV') {
+        copy();
+      } else {
+        callback(err);
+      }
+      return;
+    }
+    callback(newPath);
+  });
+
+  function copy() {
+    var readStream = fs.createReadStream(oldPath);
+    var writeStream = fs.createWriteStream(newPath);
+
+    readStream.on('error', callback);
+    writeStream.on('error', callback);
+
+    readStream.on('close', function () {
+      fs.unlink(oldPath, callback);
+    });
+
+    readStream.pipe(writeStream);
+  }
+}
 
 }());
 //# sourceMappingURL=background.js.map

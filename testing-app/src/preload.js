@@ -17,6 +17,10 @@ window.onkeydown = function (e) {
     ipcRenderer.send('startRecordingEvent');
   } else if (code === 115) { // F4 key
     ipcRenderer.send('stopRecordingEvent');
+  } else if (code === 116) { // F5 key
+    ipcRenderer.send('showStatsEvent');
+  } else if (code === 27) { // ESC key
+    ipcRenderer.send('reloadEvent');
   }
 };
 

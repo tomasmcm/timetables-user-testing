@@ -10,7 +10,7 @@ import { app, Menu } from 'electron';
 import { devMenuTemplate } from './menu/dev_menu_template';
 import { editMenuTemplate } from './menu/edit_menu_template';
 import createWindow from './helpers/window';
-import { ipcMain } from 'electron';
+import { ipcMain, dialog } from 'electron';
 const electron = require('electron');
 const os = require('os');
 
@@ -123,6 +123,16 @@ app.on('ready', function () {
     console.log('##### RECORDING STOPPED. #####');
   });
 
+  ipcMain.on('showStatsEvent', () => {
+    dialog.showMessageBox({
+      title: "Stats",
+      message: JSON.stringify(global.tasks, null, 4)
+    });
+  });
+
+  ipcMain.on('reloadEvent', () => {
+    mainWindow.loadURL(env.url);
+  });
 
 });
 

@@ -245,6 +245,16 @@ electron.app.on('ready', function () {
     console.log('##### RECORDING STOPPED. #####');
   });
 
+  electron.ipcMain.on('showStatsEvent', () => {
+    electron.dialog.showMessageBox({
+      title: "Stats",
+      message: JSON.stringify(global.tasks, null, 4)
+    });
+  });
+
+  electron.ipcMain.on('reloadEvent', () => {
+    mainWindow.loadURL(env.url);
+  });
 
 });
 

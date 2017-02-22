@@ -111,6 +111,7 @@ app.on('window-all-closed', function () {
 
 app.on('before-quit', function () {
   console.log(global.tasks);
+  showStatsEvent();
 });
 
 
@@ -147,7 +148,7 @@ function stopRecordingEvent() {
 function showStatsEvent() {
   dialog.showMessageBox({
     title: "Stats",
-    message: JSON.stringify(global.tasks, null, 4)
+    message: "User Testing Stats: \n" + JSON.stringify(global.tasks, null, 4)
   });
 }
 function reloadEvent() {

@@ -8,7 +8,7 @@ import url from 'url';
 import fs from 'fs';
 import { app, Menu } from 'electron';
 import { devMenuTemplate } from './menu/dev_menu_template';
-import { editMenuTemplate } from './menu/edit_menu_template';
+import { menuTemplate } from './menu/menu_template';
 import createWindow from './helpers/window';
 import { ipcMain, dialog } from 'electron';
 const electron = require('electron');
@@ -41,7 +41,8 @@ global.taskEnd = 0;
 global.tasks = [];
 
 var setApplicationMenu = function () {
-  var menus = [editMenuTemplate];
+  var menus = menuTemplate;
+  menus.push(optionMenuTemplate);
   if (env.name !== 'production') {
     menus.push(devMenuTemplate);
   }
@@ -62,7 +63,7 @@ app.on('ready', function () {
   var mainScreen = electron.screen.getPrimaryDisplay().size;
   options.cropArea.width = mainScreen.width, options.cropArea.height = mainScreen.height;
 
-  var mainWindow = createWindow('main', {
+  mainWindow = createWindow('main', {
     width: 800,
     height: 600,
     webPreferences: {
@@ -90,49 +91,17 @@ app.on('ready', function () {
     // console.log("enter pressed");
   });
 
-  ipcMain.on('startTaskEvent', () => {
-    console.log(`=====> TASK ${global.currentTask} STARTED. <=====`);
-    global.taskStart = new Date().getTime();
-    global.taskClicks = 0;
-    global.taskEnters = 0;
-  });
-  ipcMain.on('stopTaskEvent', () => {
-    global.taskEnd = new Date().getTime();
-    console.log(`=====> TASK ${global.currentTask} ENDED.   <=====`);
-    global.tasks.push({"task": global.currentTask,
-                      "clicks": global.taskClicks,
-                      "enters": global.taskEnters,
-                      "time": (global.taskEnd - global.taskStart)/1000 });
-    global.currentTask++;
-  });
+  ipcMain.on('startTaskEvent', startTaskEvent);
 
+  ipcMain.on('stopTaskEvent', stopTaskEvent );
 
-  ipcMain.on('startRecordingEvent', () => {
-    console.log('##### RECORDING STARTED. #####');
-    aperture.startRecording(options).then(filePath => {
-      console.log(filePath);
-      recordedPath = filePath;
-    });
-  });
-  ipcMain.on('stopRecordingEvent', () => {
-    aperture.stopRecording();
-    if ( typeof recordedPath !== 'undefined' && recordedPath ) {
-      var dir = os.homedir() + '/Desktop/Recording-'+Math.random().toString(36).substr(2, 5)+'.mp4';
-      move(recordedPath.toString(), dir, function(e){console.log(e)});
-    }
-    console.log('##### RECORDING STOPPED. #####');
-  });
+  ipcMain.on('startRecordingEvent', () => startRecordingEvent);
 
-  ipcMain.on('showStatsEvent', () => {
-    dialog.showMessageBox({
-      title: "Stats",
-      message: JSON.stringify(global.tasks, null, 4)
-    });
-  });
+  ipcMain.on('stopRecordingEvent', stopRecordingEvent );
 
-  ipcMain.on('reloadEvent', () => {
-    mainWindow.loadURL(env.url);
-  });
+  ipcMain.on('showStatsEvent', showStatsEvent );
+
+  ipcMain.on('reloadEvent', reloadEvent );
 
 });
 
@@ -143,6 +112,89 @@ app.on('window-all-closed', function () {
 app.on('before-quit', function () {
   console.log(global.tasks);
 });
+
+
+function startTaskEvent() {
+  console.log(`=====> TASK ${global.currentTask} STARTED. <=====`);
+  global.taskStart = new Date().getTime();
+  global.taskClicks = 0;
+  global.taskEnters = 0;
+}
+function stopTaskEvent() {
+  global.taskEnd = new Date().getTime();
+  console.log(`=====> TASK ${global.currentTask} ENDED.   <=====`);
+  global.tasks.push({"task": global.currentTask,
+  "clicks": global.taskClicks,
+  "enters": global.taskEnters,
+  "time": (global.taskEnd - global.taskStart)/1000 });
+  global.currentTask++;
+}
+function startRecordingEvent() {
+  console.log('##### RECORDING STARTED. #####');
+  aperture.startRecording(options).then(filePath => {
+    console.log(filePath);
+    recordedPath = filePath;
+  });
+}
+function stopRecordingEvent() {
+  aperture.stopRecording();
+  if ( typeof recordedPath !== 'undefined' && recordedPath ) {
+    var dir = os.homedir() + '/Desktop/Recording-'+Math.random().toString(36).substr(2, 5)+'.mp4';
+    move(recordedPath.toString(), dir, function(e){console.log(e)});
+  }
+  console.log('##### RECORDING STOPPED. #####');
+}
+function showStatsEvent() {
+  dialog.showMessageBox({
+    title: "Stats",
+    message: JSON.stringify(global.tasks, null, 4)
+  });
+}
+function reloadEvent() {
+  console.log(env.url);
+  mainWindow.loadURL(env.url);
+}
+
+var optionMenuTemplate = {
+  label: 'Option',
+  submenu: [{
+    label: 'Reload Test Page',
+    accelerator: 'ESC',
+    click: function () {
+      reloadEvent();
+    }
+  },{
+    label: 'Start Task',
+    accelerator: 'F1',
+    click: function () {
+      startTaskEvent();
+    }
+  },{
+    label: 'Stop Task',
+    accelerator: 'F2',
+    click: function () {
+      stopTaskEvent();
+    }
+  },{
+    label: 'Start Recording',
+    accelerator: 'F3',
+    click: function () {
+      startRecordingEvent();
+    }
+  },{
+    label: 'Stop Recording',
+    accelerator: 'F4',
+    click: function () {
+      stopRecordingEvent();
+    }
+  },{
+    label: 'Show Stats',
+    accelerator: 'F5',
+    click: function () {
+      showStatsEvent();
+    }
+  }]
+};
 
 
 function move(oldPath, newPath, callback) {

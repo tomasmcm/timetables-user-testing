@@ -22,27 +22,30 @@ var devMenuTemplate = {
         click: function () {
             electron.BrowserWindow.getFocusedWindow().toggleDevTools();
         }
-    },{
-        label: 'Quit',
-        accelerator: 'CmdOrCtrl+Q',
-        click: function () {
-            electron.app.quit();
-        }
     }]
 };
 
-var editMenuTemplate = {
-    label: 'Edit',
-    submenu: [
-        { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-        { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-        { type: "separator" },
-        { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-        { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-        { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-        { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
-    ]
-};
+var menuTemplate = [{
+  label: 'File',
+  submenu: [{
+    label: 'Quit',
+    accelerator: 'CmdOrCtrl+Q',
+    click: function () {
+      electron.app.quit();
+    }
+  }]
+},{
+  label: 'Edit',
+  submenu: [
+    { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+    { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+    { type: "separator" },
+    { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+    { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+    { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+    { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+  ]
+}];
 
 // This helper remembers the size and position of your windows (and restores
 // them in that place after app relaunch).
@@ -154,6 +157,7 @@ var options = {
   audioSourceId: 'AppleHDAEngineInput:1B,0,1,0:1'
 };
 
+var mainWindow;
 var recordedPath;
 global.taskClicks = 0;
 global.taskEnters = 0;
@@ -163,7 +167,8 @@ global.taskEnd = 0;
 global.tasks = [];
 
 var setApplicationMenu = function () {
-  var menus = [editMenuTemplate];
+  var menus = menuTemplate;
+  menus.push(optionMenuTemplate);
   if (env.name !== 'production') {
     menus.push(devMenuTemplate);
   }
@@ -184,7 +189,7 @@ electron.app.on('ready', function () {
   var mainScreen = electron$1.screen.getPrimaryDisplay().size;
   options.cropArea.width = mainScreen.width, options.cropArea.height = mainScreen.height;
 
-  var mainWindow = createWindow('main', {
+  mainWindow = createWindow('main', {
     width: 800,
     height: 600,
     webPreferences: {
@@ -212,49 +217,17 @@ electron.app.on('ready', function () {
     // console.log("enter pressed");
   });
 
-  electron.ipcMain.on('startTaskEvent', () => {
-    console.log(`=====> TASK ${global.currentTask} STARTED. <=====`);
-    global.taskStart = new Date().getTime();
-    global.taskClicks = 0;
-    global.taskEnters = 0;
-  });
-  electron.ipcMain.on('stopTaskEvent', () => {
-    global.taskEnd = new Date().getTime();
-    console.log(`=====> TASK ${global.currentTask} ENDED.   <=====`);
-    global.tasks.push({"task": global.currentTask,
-                      "clicks": global.taskClicks,
-                      "enters": global.taskEnters,
-                      "time": (global.taskEnd - global.taskStart)/1000 });
-    global.currentTask++;
-  });
+  electron.ipcMain.on('startTaskEvent', startTaskEvent);
 
+  electron.ipcMain.on('stopTaskEvent', stopTaskEvent );
 
-  electron.ipcMain.on('startRecordingEvent', () => {
-    console.log('##### RECORDING STARTED. #####');
-    aperture.startRecording(options).then(filePath => {
-      console.log(filePath);
-      recordedPath = filePath;
-    });
-  });
-  electron.ipcMain.on('stopRecordingEvent', () => {
-    aperture.stopRecording();
-    if ( typeof recordedPath !== 'undefined' && recordedPath ) {
-      var dir = os.homedir() + '/Desktop/Recording-'+Math.random().toString(36).substr(2, 5)+'.mp4';
-      move(recordedPath.toString(), dir, function(e){console.log(e);});
-    }
-    console.log('##### RECORDING STOPPED. #####');
-  });
+  electron.ipcMain.on('startRecordingEvent', () => startRecordingEvent);
 
-  electron.ipcMain.on('showStatsEvent', () => {
-    electron.dialog.showMessageBox({
-      title: "Stats",
-      message: JSON.stringify(global.tasks, null, 4)
-    });
-  });
+  electron.ipcMain.on('stopRecordingEvent', stopRecordingEvent );
 
-  electron.ipcMain.on('reloadEvent', () => {
-    mainWindow.loadURL(env.url);
-  });
+  electron.ipcMain.on('showStatsEvent', showStatsEvent );
+
+  electron.ipcMain.on('reloadEvent', reloadEvent );
 
 });
 
@@ -265,6 +238,89 @@ electron.app.on('window-all-closed', function () {
 electron.app.on('before-quit', function () {
   console.log(global.tasks);
 });
+
+
+function startTaskEvent() {
+  console.log(`=====> TASK ${global.currentTask} STARTED. <=====`);
+  global.taskStart = new Date().getTime();
+  global.taskClicks = 0;
+  global.taskEnters = 0;
+}
+function stopTaskEvent() {
+  global.taskEnd = new Date().getTime();
+  console.log(`=====> TASK ${global.currentTask} ENDED.   <=====`);
+  global.tasks.push({"task": global.currentTask,
+  "clicks": global.taskClicks,
+  "enters": global.taskEnters,
+  "time": (global.taskEnd - global.taskStart)/1000 });
+  global.currentTask++;
+}
+function startRecordingEvent() {
+  console.log('##### RECORDING STARTED. #####');
+  aperture.startRecording(options).then(filePath => {
+    console.log(filePath);
+    recordedPath = filePath;
+  });
+}
+function stopRecordingEvent() {
+  aperture.stopRecording();
+  if ( typeof recordedPath !== 'undefined' && recordedPath ) {
+    var dir = os.homedir() + '/Desktop/Recording-'+Math.random().toString(36).substr(2, 5)+'.mp4';
+    move(recordedPath.toString(), dir, function(e){console.log(e);});
+  }
+  console.log('##### RECORDING STOPPED. #####');
+}
+function showStatsEvent() {
+  electron.dialog.showMessageBox({
+    title: "Stats",
+    message: JSON.stringify(global.tasks, null, 4)
+  });
+}
+function reloadEvent() {
+  console.log(env.url);
+  mainWindow.loadURL(env.url);
+}
+
+var optionMenuTemplate = {
+  label: 'Option',
+  submenu: [{
+    label: 'Reload Test Page',
+    accelerator: 'ESC',
+    click: function () {
+      reloadEvent();
+    }
+  },{
+    label: 'Start Task',
+    accelerator: 'F1',
+    click: function () {
+      startTaskEvent();
+    }
+  },{
+    label: 'Stop Task',
+    accelerator: 'F2',
+    click: function () {
+      stopTaskEvent();
+    }
+  },{
+    label: 'Start Recording',
+    accelerator: 'F3',
+    click: function () {
+      startRecordingEvent();
+    }
+  },{
+    label: 'Stop Recording',
+    accelerator: 'F4',
+    click: function () {
+      stopRecordingEvent();
+    }
+  },{
+    label: 'Show Stats',
+    accelerator: 'F5',
+    click: function () {
+      showStatsEvent();
+    }
+  }]
+};
 
 
 function move(oldPath, newPath, callback) {

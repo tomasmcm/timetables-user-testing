@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { BrowserWindow } from 'electron';
 
 export var devMenuTemplate = {
     label: 'Development',
@@ -13,12 +13,6 @@ export var devMenuTemplate = {
         accelerator: 'Alt+CmdOrCtrl+I',
         click: function () {
             BrowserWindow.getFocusedWindow().toggleDevTools();
-        }
-    },{
-        label: 'Quit',
-        accelerator: 'CmdOrCtrl+Q',
-        click: function () {
-            app.quit();
         }
     }]
 };

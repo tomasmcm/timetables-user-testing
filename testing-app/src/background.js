@@ -13,6 +13,7 @@ import createWindow from './helpers/window';
 import { ipcMain, dialog } from 'electron';
 const electron = require('electron');
 const os = require('os');
+const logDir = os.homedir() + '/Desktop/Test-'+Math.random().toString(36).substr(2, 5)+'.txt';
 
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
@@ -78,6 +79,10 @@ app.on('ready', function () {
 
   mainWindow.loadURL(env.url);
 
+  mainWindow.on('page-title-updated', function(event){
+    event.preventDefault();
+  });
+
   // if (env.name === 'development') {
   //   mainWindow.openDevTools();
   // }
@@ -111,7 +116,15 @@ app.on('window-all-closed', function () {
 
 app.on('before-quit', function () {
   console.log(global.tasks);
-  showStatsEvent();
+  fs.appendFile(logDir, JSON.stringify(global.tasks, null, 4), function (err) {
+    if (err) {
+      // append failed
+      console.log(err);
+    } else {
+      // done
+      console.log(logDir);
+    }
+  })
 });
 
 
@@ -120,6 +133,7 @@ function startTaskEvent() {
   global.taskStart = new Date().getTime();
   global.taskClicks = 0;
   global.taskEnters = 0;
+  mainWindow.setTitle(`TASK ${global.currentTask} STARTED.`);
 }
 function stopTaskEvent() {
   global.taskEnd = new Date().getTime();
@@ -129,6 +143,7 @@ function stopTaskEvent() {
   "enters": global.taskEnters,
   "time": (global.taskEnd - global.taskStart)/1000 });
   global.currentTask++;
+  mainWindow.setTitle(`TASK ${global.currentTask} ENDED.`);
 }
 function startRecordingEvent() {
   console.log('##### RECORDING STARTED. #####');
@@ -136,6 +151,7 @@ function startRecordingEvent() {
     console.log(filePath);
     recordedPath = filePath;
   });
+  mainWindow.setTitle('RECORDING STARTED.');
 }
 function stopRecordingEvent() {
   aperture.stopRecording();
@@ -144,6 +160,7 @@ function stopRecordingEvent() {
     move(recordedPath.toString(), dir, function(e){console.log(e)});
   }
   console.log('##### RECORDING STOPPED. #####');
+  mainWindow.setTitle('RECORDING STOPPED.');
 }
 function showStatsEvent() {
   dialog.showMessageBox({

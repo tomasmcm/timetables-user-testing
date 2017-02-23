@@ -7,20 +7,28 @@
   "copyright": "© 2017, tomasmcm",
   "license": "MIT",
   "main": "app/background.js",
+  "build": {
+    "files": [
+      "app/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ]
+  },
   "scripts": {
     "build": "gulp build",
     "prerelease": "gulp build --env=production",
-    "start": "gulp start"
+    "start": "gulp start",
+    "release": "build"
   },
   "dependencies": {
-    "aperture": "^2.0.0",
-    "fs-jetpack": "^0.10.2"
   },
   "devDependencies": {
+    "aperture": "^2.1.0",
     "chai": "^3.5.0",
     "electron": "^1.4.7",
     "electron-builder": "^8.6.0",
     "electron-mocha": "^3.0.0",
+    "fs-jetpack": "^0.10.2",
     "gulp": "^3.9.0",
     "gulp-batch": "^1.0.5",
     "gulp-less": "^3.0.3",
